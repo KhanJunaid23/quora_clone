@@ -1,0 +1,89 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card mb-4 question-card">
+            <div class="card-body">
+                <h2 class="card-title">{{ question.title }}</h2>
+                <div class="card-text mb-3">{{ question.content|linebreaks }}</div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="bi bi-person"></i> {{ question.author.username }} | 
+                        <i class="bi bi-clock"></i> {{ question.created_at|timesince }} ago
+                    </small>
+                    {% if question.author == user %}
+                        <div>
+                            <a href="#" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h3 class="h4 mb-3">
+                <i class="bi bi-chat-square-text"></i> Answers 
+                <span class="badge bg-primary">{{ question.answers.count }}</span>
+            </h3>
+
+            {% for answer in answers %}
+            <div class="card mb-3 answer-card">
+                <div class="card-body">
+                    <div class="card-text mb-2">{{ answer.content|linebreaks }}</div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-person"></i> {{ answer.author.username }} | 
+                            <i class="bi bi-clock"></i> {{ answer.created_at|timesince }} ago
+                        </small>
+                        <div>
+                            {% if user.is_authenticated %}
+                                <form action="{% url 'like-answer' answer.id %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm {% if user in answer.likes.all %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                                        <i class="bi bi-heart"></i> {{ answer.total_likes }}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <i class="bi bi-heart"></i> {{ answer.total_likes }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="card">
+                <div class="card-body text-center">
+                    <p class="card-text">No answers yet. Be the first to answer!</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Answer Form -->
+        {% if user.is_authenticated %}
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Your Answer</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <textarea name="content" class="form-control" rows="5" placeholder="Write your answer here..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Post Answer
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center">
+                <p class="card-text">Please <a href="{% url 'login' %}">login</a> to post an answer.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
